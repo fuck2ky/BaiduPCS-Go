@@ -1,9 +1,11 @@
 package pcsconfig
 
 import (
+	"regexp"
+	"strings"
+
 	"github.com/iikira/BaiduPCS-Go/pcsutil/converter"
 	"github.com/iikira/BaiduPCS-Go/requester"
-	"strings"
 )
 
 const (
@@ -112,8 +114,13 @@ func (c *PCSConfig) CheckBaiduUserExist(baidubase *BaiduBase) bool {
 	return err == nil
 }
 
-// SetupUserByBDUSS 设置百度 bduss, ptoken, stoken 并保存
-func (c *PCSConfig) SetupUserByBDUSS(bduss, ptoken, stoken string) (baidu *Baidu, err error) {
+// SetupUserByBDUSS 设置百度 bduss, ptoken, stoken, cookies 并保存
+func (c *PCSConfig) SetupUserByBDUSS(bduss, ptoken, stoken, cookies string) (baidu *Baidu, err error) {
+	if cookies != "" {
+		re, _ := regexp.Compile(`BDUSS=(.+?);`)
+		sub := re.FindSubmatch([]byte(cookies))
+		bduss = string(sub[1])
+	}
 	b, err := NewUserInfoByBDUSS(bduss)
 	if err != nil {
 		return nil, err
@@ -125,6 +132,7 @@ func (c *PCSConfig) SetupUserByBDUSS(bduss, ptoken, stoken string) (baidu *Baidu
 
 	b.PTOKEN = ptoken
 	b.STOKEN = stoken
+	b.COOKIES = cookies
 
 	c.BaiduUserList = append(c.BaiduUserList, b)
 

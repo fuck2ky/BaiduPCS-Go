@@ -3,15 +3,16 @@ package baidupcs
 
 import (
 	"errors"
+	"net/http"
+	"net/http/cookiejar"
+	"net/url"
+	"strconv"
+
 	"github.com/iikira/BaiduPCS-Go/baidupcs/expires/cachemap"
 	"github.com/iikira/BaiduPCS-Go/baidupcs/internal/panhome"
 	"github.com/iikira/BaiduPCS-Go/baidupcs/pcserror"
 	"github.com/iikira/BaiduPCS-Go/pcsverbose"
 	"github.com/iikira/BaiduPCS-Go/requester"
-	"net/http"
-	"net/http/cookiejar"
-	"net/url"
-	"strconv"
 )
 
 const (
@@ -75,6 +76,10 @@ const (
 	OperationShareList = "列出分享列表"
 	// OperationShareSURLInfo 获取分享详细信息
 	OperationShareSURLInfo = "获取分享详细信息"
+	// OperationShareFileSavetoLocal 用分享链接转存到网盘
+	OperationShareFileSavetoLocal = "用分享链接转存到网盘"
+	// OperationRapidLinkSavetoLocal 用秒传链接转存到网盘
+	OperationRapidLinkSavetoLocal = "用秒传链接转存到网盘"
 	// OperationRecycleList 列出回收站文件列表
 	OperationRecycleList = "列出回收站文件列表"
 	// OperationRecycleRestore 还原回收站文件或目录

@@ -24,4 +24,5 @@ require (
 	github.com/urfave/cli v1.21.1-0.20190817182405-23c83030263f
 	golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586
 	golang.org/x/sys v0.0.0-20191025090151-53bf42e6b339
+	github.com/tidwall/gjson v1.6.0
 )

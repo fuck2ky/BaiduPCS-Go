@@ -3,12 +3,13 @@ package pcscommand
 import (
 	"bytes"
 	"fmt"
-	"github.com/iikira/Baidu-Login"
+	"image/png"
+	"io/ioutil"
+
+	baidulogin "github.com/iikira/Baidu-Login"
 	"github.com/iikira/BaiduPCS-Go/internal/pcsfunctions/pcscaptcha"
 	"github.com/iikira/BaiduPCS-Go/pcsliner"
 	"github.com/iikira/BaiduPCS-Go/requester"
-	"image/png"
-	"io/ioutil"
 )
 
 // handleVerifyImg 处理验证码, 下载到本地
@@ -29,7 +30,7 @@ func handleVerifyImg(imgURL string) (savePath string, err error) {
 }
 
 // RunLogin 登录百度帐号
-func RunLogin(username, password string) (bduss, ptoken, stoken string, err error) {
+func RunLogin(username, password string) (bduss, ptoken, stoken string, cookies string, err error) {
 	line := pcsliner.NewLiner()
 	defer line.Close()
 
@@ -64,7 +65,7 @@ for_1:
 
 		switch lj.ErrInfo.No {
 		case "0": // 登录成功, 退出循环
-			return lj.Data.BDUSS, lj.Data.PToken, lj.Data.SToken, nil
+			return lj.Data.BDUSS, lj.Data.PToken, lj.Data.SToken, lj.Data.CookieString, nil
 		case "400023", "400101": // 需要验证手机或邮箱
 			fmt.Printf("\n需要验证手机或邮箱才能登录\n选择一种验证方式\n")
 			fmt.Printf("1: 手机: %s\n", lj.Data.Phone)
@@ -109,7 +110,7 @@ for_1:
 					continue
 				}
 				// 登录成功
-				return nlj.Data.BDUSS, nlj.Data.PToken, nlj.Data.SToken, nil
+				return nlj.Data.BDUSS, nlj.Data.PToken, nlj.Data.SToken, lj.Data.CookieString, nil
 			}
 			break for_1
 		case "500001", "500002": // 验证码

@@ -3,6 +3,16 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
+	"os"
+	"os/exec"
+	"path"
+	"path/filepath"
+	"runtime"
+	"sort"
+	"strconv"
+	"strings"
+	"unicode"
+
 	"github.com/iikira/BaiduPCS-Go/baidupcs"
 	"github.com/iikira/BaiduPCS-Go/internal/pcscommand"
 	"github.com/iikira/BaiduPCS-Go/internal/pcsconfig"
@@ -22,15 +32,6 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/peterh/liner"
 	"github.com/urfave/cli"
-	"os"
-	"os/exec"
-	"path"
-	"path/filepath"
-	"runtime"
-	"sort"
-	"strconv"
-	"strings"
-	"unicode"
 )
 
 const (
@@ -153,7 +154,7 @@ func main() {
 				lineArgs                   = args.Parse(line)
 				numArgs                    = len(lineArgs)
 				acceptCompleteFileCommands = []string{
-					"cd", "cp", "download", "export", "fixmd5", "locate", "ls", "meta", "mkdir", "mv", "rapidupload", "rm", "share", "tree", "upload",
+					"cd", "cp", "download", "export", "fixmd5", "locate", "ls", "meta", "mkdir", "mv", "rapidupload", "rm", "share", "transfer", "tree", "upload",
 				}
 				closed = strings.LastIndex(line, " ") == len(line)-1
 			)
@@ -403,25 +404,32 @@ func main() {
 		BaiduPCS-Go login
 		BaiduPCS-Go login -username=liuhua
 		BaiduPCS-Go login -bduss=123456789
+		BaiduPCS-Go login -cookies="BDUSS=xxxxx; BAIDUID=yyyyyy; STOKEN=zzzzz; ...."
 
 	常规登录:
 		按提示一步一步来即可.
 
 	百度BDUSS获取方法:
 		参考这篇 Wiki: https://github.com/iikira/BaiduPCS-Go/wiki/关于-获取百度-BDUSS
-		或者百度搜索: 获取百度BDUSS`,
+		或者百度搜索: 获取百度BDUSS
+		
+	百度Cookies获取办法:
+	以Chrome为例，登录到自己的百度网盘主页，F12，然后切换到Network标签，刷新页面，Network标签下会刷出一大堆东西
+	找到第一条，点击，看到右侧出现的详情，往下翻到Cookies: xxxx; xxxxx; xxx...这样的字段，从冒号后（没有空格）一直复制到字段末尾`,
 			Category: "百度帐号",
 			Before:   reloadFn,
 			After:    saveFunc,
 			Action: func(c *cli.Context) error {
-				var bduss, ptoken, stoken string
-				if c.IsSet("bduss") {
+				var bduss, ptoken, stoken, cookies string
+				if c.IsSet("cookies") {
+					cookies = c.String("cookies")
+				} else if c.IsSet("bduss") {
 					bduss = c.String("bduss")
 					ptoken = c.String("ptoken")
 					stoken = c.String("stoken")
 				} else if c.NArg() == 0 {
 					var err error
-					bduss, ptoken, stoken, err = pcscommand.RunLogin(c.String("username"), c.String("password"))
+					bduss, ptoken, stoken, cookies, err = pcscommand.RunLogin(c.String("username"), c.String("password"))
 					if err != nil {
 						fmt.Println(err)
 						return err
@@ -431,7 +439,7 @@ func main() {
 					return nil
 				}
 
-				baidu, err := pcsconfig.Config.SetupUserByBDUSS(bduss, ptoken, stoken)
+				baidu, err := pcsconfig.Config.SetupUserByBDUSS(bduss, ptoken, stoken, cookies)
 				if err != nil {
 					fmt.Println(err)
 					return nil
@@ -460,6 +468,10 @@ func main() {
 				cli.StringFlag{
 					Name:  "stoken",
 					Usage: "百度 STOKEN, 配合 -bduss 参数使用 (可选)",
+				},
+				cli.StringFlag{
+					Name:  "cookies",
+					Usage: "使用百度 Cookies 来登录百度账号 (以此方式登录可使用分享链接转存功能)",
 				},
 			},
 		},
@@ -1343,6 +1355,29 @@ func main() {
 					fmt.Printf("\n")
 				}
 
+				return nil
+			},
+		},
+		{
+			Name:      "transfer",
+			Usage:     "转存文件/目录",
+			UsageText: app.Name + " transfer <分享链接> <提取码>(如果有)",
+			Category:  "百度网盘",
+			Before:    reloadFn,
+			Description: `
+			转存文件/目录
+	如果没有提取码，则第二个位置留空；只能转存到当前网盘目录下，不支持旧百度云的短链接
+	
+	实例：
+	转存 https://pan.baidu.com/s/1VYzSl7465sdrQXe8GT5RdQ 提取码704e
+	BaiduPCS-Go transfer pan.baidu.com/s/1VYzSl7465sdrQXe8GT5RdQ 704e
+	`,
+			Action: func(c *cli.Context) error {
+				if c.NArg() < 1 || c.NArg() > 2 {
+					cli.ShowCommandHelp(c, c.Command.Name)
+					return nil
+				}
+				pcscommand.RunShareTransfer(c.Args())
 				return nil
 			},
 		},

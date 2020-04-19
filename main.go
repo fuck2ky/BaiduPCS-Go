@@ -1477,10 +1477,11 @@ func main() {
 				}
 
 				pcscommand.RunExport(pcspaths, &pcscommand.ExportOptions{
-					RootPath:  c.String("root"),
-					SavePath:  c.String("out"),
-					MaxRetry:  c.Int("retry"),
-					Recursive: c.Bool("r"),
+					RootPath:   c.String("root"),
+					SavePath:   c.String("out"),
+					MaxRetry:   c.Int("retry"),
+					Recursive:  c.Bool("r"),
+					LinkFormat: c.Bool("link"),
 				})
 				return nil
 			},
@@ -1501,6 +1502,10 @@ func main() {
 				cli.BoolFlag{
 					Name:  "r",
 					Usage: "递归导出",
+				},
+				cli.BoolFlag{
+					Name:  "link",
+					Usage: "以通用秒传链接格式导出(将丢失路径信息)",
 				},
 			},
 		},

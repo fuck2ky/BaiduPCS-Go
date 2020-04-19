@@ -3,14 +3,15 @@ package pcscommand
 import (
 	"container/list"
 	"fmt"
-	"github.com/iikira/BaiduPCS-Go/baidupcs"
-	"github.com/iikira/BaiduPCS-Go/baidupcs/pcserror"
-	"github.com/iikira/BaiduPCS-Go/pcsutil/converter"
-	"github.com/iikira/BaiduPCS-Go/pcsutil/pcstime"
 	"os"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/iikira/BaiduPCS-Go/baidupcs"
+	"github.com/iikira/BaiduPCS-Go/baidupcs/pcserror"
+	"github.com/iikira/BaiduPCS-Go/pcsutil/converter"
+	"github.com/iikira/BaiduPCS-Go/pcsutil/pcstime"
 )
 
 type (
@@ -24,10 +25,11 @@ type (
 
 	// ExportOptions 导出可选项
 	ExportOptions struct {
-		RootPath  string // 根路径
-		SavePath  string // 输出路径
-		MaxRetry  int
-		Recursive bool
+		RootPath   string // 根路径
+		SavePath   string // 输出路径
+		MaxRetry   int
+		Recursive  bool
+		LinkFormat bool
 	}
 )
 
@@ -190,8 +192,11 @@ func RunExport(pcspaths []string, opt *ExportOptions) {
 			task.handleExportTaskError(l, failedList)
 			continue
 		}
-
-		_, writeErr = saveFile.Write(converter.ToBytes(fmt.Sprintf("BaiduPCS-Go rapidupload -length=%d -md5=%s -slicemd5=%s -crc32=%s \"%s\"\n", rinfo.ContentLength, rinfo.ContentMD5, rinfo.SliceMD5, rinfo.ContentCrc32, changeRootPath(task.rootPath, task.path, opt.RootPath))))
+		var outTemplate string = fmt.Sprintf("BaiduPCS-Go rapidupload -length=%d -md5=%s -slicemd5=%s -crc32=%s \"%s\"\n", rinfo.ContentLength, rinfo.ContentMD5, rinfo.SliceMD5, rinfo.ContentCrc32, changeRootPath(task.rootPath, task.path, opt.RootPath))
+		if opt.LinkFormat {
+			outTemplate = fmt.Sprintf("%s#%s#%d#%s\n", rinfo.ContentMD5, rinfo.SliceMD5, rinfo.ContentLength, path.Base(task.path))
+		}
+		_, writeErr = saveFile.Write(converter.ToBytes(outTemplate))
 		if writeErr != nil {
 			fmt.Printf("写入文件失败: %s\n", writeErr)
 			return // 直接返回

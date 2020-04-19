@@ -1366,11 +1366,14 @@ func main() {
 			Before:    reloadFn,
 			Description: `
 			转存文件/目录
-	如果没有提取码，则第二个位置留空；只能转存到当前网盘目录下，不支持旧百度云的短链接
+	如果没有提取码，则第二个位置留空；只能转存到当前网盘目录下，
+	分享链接支持常规百度云链接（不支持旧百度云的短链接）及常见秒传链接（不支持游侠）
 	
-	实例：
-	转存 https://pan.baidu.com/s/1VYzSl7465sdrQXe8GT5RdQ 提取码704e
+	实例 (以下链接均为无效链接)：
 	BaiduPCS-Go transfer pan.baidu.com/s/1VYzSl7465sdrQXe8GT5RdQ 704e
+	BaiduPCS-Go transfer A5AAE70207FFD51AB839D60B39FD0FD5#EE3289A6F0473AC34F83483E80A29B42#8554286#测试.7z
+	BaiduPCS-Go transfer bdpan://xxxxx|yyyyyy|zzzz|oooo
+	BaiduPCS-Go transfer bdlink=MDMzMjkxQzNFNkQ4RDdEMzI2Q
 	`,
 			Action: func(c *cli.Context) error {
 				if c.NArg() < 1 || c.NArg() > 2 {

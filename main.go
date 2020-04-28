@@ -1406,8 +1406,18 @@ func main() {
 							cli.ShowCommandHelp(c, c.Command.Name)
 							return nil
 						}
+						so := &baidupcs.ShareOption{
+							Password: c.String("p"),
+						}
 						pcscommand.RunShareSet(c.Args(), nil)
 						return nil
+					},
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "p",
+							Usage: "设置分享的密码",
+							Value: "1111",
+						},
 					},
 				},
 				{

@@ -3,18 +3,19 @@ package baidupcs
 import (
 	"bytes"
 	"fmt"
-	"github.com/iikira/BaiduPCS-Go/baidupcs/netdisksign"
-	"github.com/iikira/BaiduPCS-Go/baidupcs/pcserror"
-	"github.com/iikira/BaiduPCS-Go/pcsutil/converter"
-	"github.com/iikira/BaiduPCS-Go/requester/multipartreader"
-	"github.com/iikira/baidu-tools/tieba"
-	"github.com/json-iterator/go"
 	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"unsafe"
+
+	"github.com/iikira/BaiduPCS-Go/baidupcs/netdisksign"
+	"github.com/iikira/BaiduPCS-Go/baidupcs/pcserror"
+	"github.com/iikira/BaiduPCS-Go/pcsutil/converter"
+	"github.com/iikira/BaiduPCS-Go/requester/multipartreader"
+	"github.com/iikira/baidu-tools/tieba"
+	jsoniter "github.com/json-iterator/go"
 )
 
 type (
@@ -586,7 +587,7 @@ func (pcs *BaiduPCS) PrepareCloudDlClearTask() (dataReadCloser io.ReadCloser, pc
 }
 
 // PrepareSharePSet 私密分享文件, 只返回服务器响应数据和错误信息
-func (pcs *BaiduPCS) PrepareSharePSet(paths []string, period int) (dataReadCloser io.ReadCloser, panError pcserror.Error) {
+func (pcs *BaiduPCS) PrepareSharePSet(paths []string, period int, pwd string) (dataReadCloser io.ReadCloser, panError pcserror.Error) {
 	pcs.lazyInit()
 	panURL := &url.URL{
 		Scheme: "https",
@@ -597,9 +598,10 @@ func (pcs *BaiduPCS) PrepareSharePSet(paths []string, period int) (dataReadClose
 
 	dataReadCloser, panError = pcs.sendReqReturnReadCloser(reqTypePan, OperationShareSet, http.MethodPost, panURL.String(), map[string]string{
 		"path_list":    mergeStringList(paths...),
-		"schannel":     "0",
+		"schannel":     "4",
 		"channel_list": "[]",
 		"period":       strconv.Itoa(period),
+		"pwd":          pwd,
 	}, map[string]string{
 		"Content-Type": "application/x-www-form-urlencoded",
 	})

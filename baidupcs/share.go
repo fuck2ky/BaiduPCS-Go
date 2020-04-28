@@ -67,7 +67,7 @@ func (pcs *BaiduPCS) ShareSet(paths []string, option *ShareOption) (s *Shared, p
 		option = &ShareOption{}
 	}
 
-	dataReadCloser, pcsError := pcs.PrepareSharePSet(paths, option.Period)
+	dataReadCloser, pcsError := pcs.PrepareSharePSet(paths, option.Period, option.Password)
 	if pcsError != nil {
 		return
 	}
